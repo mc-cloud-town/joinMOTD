@@ -6,6 +6,6 @@
     "en_us": "Send player a MOTD when he joins",
     "zh_cn": "当玩家加入游戏时向其发送欢迎信息"
   },
-  "author": ["Fallen_Breath", "Eric_Yang", "a3510377"],
+  "author": ["Fallen_Breath", "Eric_Yang", "a3510377", "shane0411"],
   "link": "https://github.com/a3510377/joinMOTD"
 }
