@@ -2,7 +2,7 @@
 joinMOTD
 Base Repo: https://github.com/TISUnion/joinMOTD
 Author: Fallen-Breath
-Edited by: Eric_Yang, a3510377
+Edited by: Eric_Yang, a3510377, shane0411
 """
 
 import collections
@@ -71,7 +71,6 @@ class Config(Serializable):
     ignore_player_regex: List[str] = ["^bot_.*$", "^Bot_.*$", "^\\[bot\\].*$"]
 
 
-config: Config
 manager: Optional["PluginManager"] = None
 
 LAST_UP_PREFIX = "!!up"
@@ -127,7 +126,7 @@ class PluginManager:
         reply(f"§7§rWelcome back to §e{self.config.serverName}§7§r")
         reply(f"今天是 §e{self.config.mainServerName}§ r開服的第 §e{self.get_day()}§r 天")
         if player is not None:
-            self.display_last_join(reply, player, write=True)
+            self.display_last_join(reply, player, not_error=True)
         reply("§7-------§r Server List §7-------§r")
 
         server_dict: Dict[str, List[ServerInfo]] = collections.defaultdict(list)
@@ -170,12 +169,15 @@ class PluginManager:
         reply: Callable[[Union[str, RTextBase]], Any],
         player: str,
         *,
-        write: bool = False,
+        not_error: bool = False,
     ) -> None:
-        days = self.get_last_join_time_days(player, write=write)
+        days = self.get_last_join_time_days(player)
+        if not_error and days == -1:
+            days = 0
         reply(f"距離上次加入伺服器已過 §e{days}§r 天")
 
-    def display_last_join_help(self, reply: Callable[[Union[str, RTextBase]], Any]) -> None:
+    @staticmethod
+    def display_last_join_help(reply: Callable[[Union[str, RTextBase]], Any]) -> None:
         reply("顯示上次加入伺服器時間:")
         reply(f"- {LAST_UP_PREFIX} get <player_name>")
         reply(f"- {LAST_UP_PREFIX} list")
@@ -308,25 +310,21 @@ class PluginManager:
             self.server.logger.error(f"Error getting last join time: {e}")
             return {}
 
-    def calc_days(self, time: datetime) -> int:
+    @staticmethod
+    def calc_days(time: datetime) -> int:
         return (datetime.now() - time).days
 
-    def get_last_join_time_days(self, player: str, write: bool = False) -> int:
+    def get_last_join_time_days(self, player: str) -> int:
         try:
-            last_time = self.data.get(player)
-            if last_time is None:
-                if write:
-                    self.save_last_join_time(player)
-                    return 0
-                return -1  # Not found
-
-            return self.calc_days(last_time)
+            if (last_time := self.data.get(player)) is not None:
+                return self.calc_days(last_time)
         except Exception as e:
             self.server.logger.error(f"Error getting last join time: {e}")
-            return -1  # Error
+
+        return -1  # Not Found
 
 
-def on_player_joined(server: ServerInterface, player: str, info: Info) -> None:
+def on_player_joined(server: ServerInterface, player: str, _info: Info) -> None:
     if manager is not None:
         manager.display_motd(lambda msg: server.tell(player, msg), player)
     else:
@@ -340,7 +338,7 @@ def on_player_left(server: ServerInterface, player: str) -> None:
         server.logger.error("PluginManager is not initialized")
 
 
-def on_load(server: PluginServerInterface, old) -> None:
+def on_load(server: PluginServerInterface, _old) -> None:
     global manager
 
     config: Config = server.load_config_simple(
