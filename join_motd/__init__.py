@@ -253,14 +253,14 @@ class PluginManager:
     # - 3. {} [ 30天]
     # - 4. {} [120天]
     def format_last_join_player_list(self):
-        index = 1
-        result: List[RTextBase] = []
         import minecraft_data_api as api  # type: ignore
 
         data: APIPlayerListQueryResult = api.get_server_player_list()
         # amount, limit, online_players = data
         _, _, online_players = data
 
+        index = 1
+        result: List[RTextBase] = []
         for player in online_players:
             if self.player_is_ignore(player):
                 continue
