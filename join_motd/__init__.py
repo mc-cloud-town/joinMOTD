@@ -170,11 +170,12 @@ class PluginManager:
         player: str,
         *,
         not_error: bool = False,
+        with_name: bool = False,
     ) -> None:
         days = self.get_last_join_time_days(player)
         if not_error and days == -1:
             days = 0
-        reply(f"距離上次加入伺服器已過 §e{days}§r 天")
+        reply((player if with_name else "") + f"距離上次加入伺服器已過 §e{days}§r 天")
 
     @staticmethod
     def display_last_join_help(reply: Callable[[Union[str, RTextBase]], Any]) -> None:
