@@ -104,7 +104,7 @@ class PluginManager:
         builder.arg("player_name", Text)
         builder.command(
             f"{LAST_UP_PREFIX} get <player_name>",
-            lambda src, ctx: self.display_last_join(src.reply, ctx["player_name"]),
+            lambda src, ctx: self.display_last_join(src.reply, ctx["player_name"], with_name=True),
         )
         builder.command(
             f"{LAST_UP_PREFIX} list",
